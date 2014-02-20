@@ -35,12 +35,16 @@ class Process {
 		return fwrite($stream, $data);
 	}
 	
-	function read($stream = self::STDOUT){
+	function getPipe($stream){
+		return $this->pipes[$stream];
+	}
+	
+	function read($stream = self::STDOUT, $timeout = 0){
 		$ret = '';
-		$stream = array($this->pipes[$stream]);
+		$stream = array($this->getPipe($stream));
 		stream_set_blocking($stream[0],true);
 		$nr = array();
-		while(stream_select($stream, $nr, $nr, 0)){
+		while(stream_select($stream, $nr, $nr, $timeout)){
 			$data = fread($stream[0],1);
 			if(strlen($data) == 0) return $ret;
 			$ret .= $data;
@@ -49,8 +53,7 @@ class Process {
 	}
 	
 	function readAll($stream = self::STDOUT){
-		$stream = $this->pipes[$stream];
-		$stream_reader = new Stream\Reader($stream);
+		$stream_reader = new Stream\Reader($this->getPipe($stream));
 		return $stream_reader->ReadAll();
 	}
 	
